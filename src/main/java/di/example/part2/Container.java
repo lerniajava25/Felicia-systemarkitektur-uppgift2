@@ -23,6 +23,9 @@ public class Container {
      * @throws IllegalStateException on missing/ambiguous constructors or a dependency cycle
      */
     public <T> T resolve(Class<T> type) {
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
         return resolve(type, new HashSet<>());
     }
 
@@ -58,7 +61,8 @@ public class Container {
         }
         if (constructors.length > 1) {
             throw new IllegalStateException
-                    ("Exactly one public constructor expected, found: " + implClass.getName());
+                    ("Exactly one public constructor expected for: "
+                            + implClass.getName() + ", but found " + constructors.length);
         }
         return constructors[0];
     }
