@@ -11,9 +11,6 @@ public class Container {
 
     private final Map<Class<?>, Class<?>> bindings = new HashMap<>();
 
-    /** Types currently being resolved, used to detect circular dependencies. */
-    private final Set<Class<?>> resolutionPath = new HashSet<>();
-
     public <T> void bind(Class<T> type, Class<? extends T> implementation) {
         bindings.put(type, implementation);
     }
@@ -26,37 +23,43 @@ public class Container {
      * @throws IllegalStateException on missing/ambiguous constructors or a dependency cycle
      */
     public <T> T resolve(Class<T> type) {
+        return resolve(type, new HashSet<>());
+    }
+
+    private <T> T resolve(Class<T> type, Set<Class<?>> resolutionPath) {
         Class<?> implClass = bindings.getOrDefault(type, type);
 
         if (!resolutionPath.add(implClass)) {
-            throw new IllegalStateException("Circular dependency detected");
+            throw new IllegalStateException("Circular dependency detected for: " + implClass.getName());
         }
         try {
-            Constructor<?>[] constructors = implClass.getConstructors();
-
-            if (constructors.length == 0) {
-                throw new IllegalStateException(
-                        "No public constructor available for " + implClass.getName());
-            }
-
-            if (constructors.length > 1) {
-                throw new IllegalStateException
-                        ("Exactly one public constructor expected, found: " + implClass.getName());
-            }
-
-            Constructor<?> constructor = constructors[0];
+            Constructor<?> constructor = findInjectableConstructor(implClass);
 
             Class<?>[] paramTypes = constructor.getParameterTypes();
             Object[] dependencies = new Object[paramTypes.length];
             for (int i = 0; i < paramTypes.length; i++) {
-                dependencies[i] = resolve(paramTypes[i]);
+                dependencies[i] = resolve(paramTypes[i], resolutionPath);
             }
-                return type.cast(constructor.newInstance(dependencies));
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException("Could not instantiate " + implClass, e);
-            } finally {
-                resolutionPath.remove(implClass);
-            }
+
+            return type.cast(constructor.newInstance(dependencies));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Could not instantiate " + implClass.getName(), e);
+        } finally {
+            resolutionPath.remove(implClass);
         }
     }
 
+    private Constructor<?> findInjectableConstructor(Class<?> implClass) {
+        Constructor<?>[] constructors = implClass.getConstructors();
+
+        if (constructors.length == 0) {
+            throw new IllegalStateException(
+                    "No public constructor available for " + implClass.getName());
+        }
+        if (constructors.length > 1) {
+            throw new IllegalStateException
+                    ("Exactly one public constructor expected, found: " + implClass.getName());
+        }
+        return constructors[0];
+    }
+}
