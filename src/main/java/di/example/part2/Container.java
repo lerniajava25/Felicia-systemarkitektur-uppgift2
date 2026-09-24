@@ -6,16 +6,25 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/** Reflection-based DI container */
 public class Container {
 
     private final Map<Class<?>, Class<?>> bindings = new HashMap<>();
 
+    /** Types currently being resolved, used to detect circular dependencies. */
     private final Set<Class<?>> resolutionPath = new HashSet<>();
 
     public <T> void bind(Class<T> type, Class<? extends T> implementation) {
         bindings.put(type, implementation);
     }
 
+    /**
+     * Builds {@code type}, resolving its constructor dependencies recursively.
+     *
+     * @param type the class or interface to build
+     * @return a fully constructed instance
+     * @throws IllegalStateException on missing/ambiguous constructors or a dependency cycle
+     */
     public <T> T resolve(Class<T> type) {
         Class<?> implClass = bindings.getOrDefault(type, type);
 

@@ -1,7 +1,7 @@
 package di.example.part2;
 
-/* PhoneStore = Top level class.
-PhoneStore needs a phone, and
+/** PhoneShop = Top level class.
+PhoneShop needs a phone, and
 a Phone needs an OperatingSystem.*/
 
 public class PhoneShop {
