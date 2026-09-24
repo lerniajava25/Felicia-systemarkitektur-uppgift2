@@ -1,4 +1,4 @@
-package di.example.part2;
+package di.example;
 
 public interface OperatingSystem {
     void boot();

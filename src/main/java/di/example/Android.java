@@ -1,4 +1,4 @@
-package di.example.part1;
+package di.example;
 
 public class Android implements OperatingSystem {
     @Override

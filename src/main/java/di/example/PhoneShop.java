@@ -1,4 +1,4 @@
-package di.example.part2;
+package di.example;
 
 /** PhoneShop = Top level class.
 PhoneShop needs a phone, and

@@ -1,4 +1,4 @@
-package di.example.part2;
+package di.example;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
